@@ -7,5 +7,5 @@ Currently recreating project in Angular.
 
 TODO:
 Refactor!
-Issue with dashbaord time calculation (Used to determine minutes since 5 am of same business day, used in api calls)- will run calculation on component mount a single time. 
+Issue with dashbaord time calculation (Used to determine minutes since 5 am of same business day, used in api calls)- will run calculation on component mount a single time, does not update intra-day. This is skewing the SLA graph/ chat count.
 
