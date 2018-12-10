@@ -4,7 +4,7 @@ Academic Project:
 Basic Liveengage dashboard to display call center KPI's. Linked to LiveEngage's public APIs.
 
 
-<img src="../screenshot.png" alt="My Screenshot"/>
+<img src="../master/screenshot.png" alt="My Screenshot"/>
 Screenshot had redactions.
 
 Currently recreating project in Angular.
