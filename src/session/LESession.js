@@ -6,15 +6,6 @@
 
 import config from './config'
 
-// const getMinutesSinceOpen = () => {
-//     let deptOpen = new Date();
-//         deptOpen.setHours( process.env.VUE_APP_CHATDEPT_OPENHOUR );
-//         deptOpen.setMinutes( 0 );
-//         deptOpen.setSeconds( 0 );
-//         deptOpen.setMilliseconds( 0 );
-//         return Math.round( ( new Date().getTime() - deptOpen.getTime() ) / 1000 / 60 );
-// }
-
 class LESession {
     constructor() {
         this.status = {
