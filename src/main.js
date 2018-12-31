@@ -14,6 +14,7 @@ Vue.use(VueMaterial) //we'll import each module separately later on
 
 Vue.config.productionTip = false
 
+
 new Vue({
   el: '#app',
   router,

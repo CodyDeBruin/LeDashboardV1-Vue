@@ -1,6 +1,6 @@
 <template>
       <div class="md-elevation-2">
-        <span class="md-title">{{(val).toFixed(0)}}</span><br/>
+        <span class="md-title">{{(val)}}</span><br/>
         <span class="md-body-1">{{caption}}</span>
       </div>
 </template>

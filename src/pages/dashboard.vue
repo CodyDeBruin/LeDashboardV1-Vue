@@ -1,7 +1,7 @@
 <template>
     <section> 
         <div class="md-layout md-alignment-top-center" v-if="this.fetchResponses.loaded">
-            <ActionBar :class="'md-layout-item md-size-95 ' + kpiShouldBlink" :fetchResponse="fetchResponses.QueueHealth" :SlotsAvail="getAvailableSlots()"/>
+            <ActionBar :class="'md-layout-item md-size-95 ' + kpiShouldBlink" :fetchResponse="fetchResponses.QueueHealth" :SlotsAvail="getAvailableSlots()" :currentSLA="getCurrentSLA()"/>
             <SLAChart class="md-layout-item md-size-30" :fetchResponse="fetchResponses.SlaHistogram.slaDataRange"/>
             <AgentGrid class="md-layout-item md-size" viewType='Ready' :fetchResponse="grabAgentsByGridType('Ready')"/>
             <AgentGrid class="md-layout-item md-size" viewType='Not-Ready' :fetchResponse="grabAgentsByGridType('Not-Ready')"/> 
@@ -130,7 +130,11 @@ export default {
             return acc + (current['@maxChats'] - current.chats)
         }, 0)
     },
+    getCurrentSLA() {
+        return ( this.fetchResponses.loaded && (this.fetchResponses.SlaHistogram.slaDataRange['0'].percentageFromTotal * 100) )
+    },
   }
+
 
 
 }

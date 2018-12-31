@@ -23,9 +23,9 @@ export default {
     data() {
       return {
         chartOptions: {
-            title: `Digital Chat SLA - Current SL: ${(this.fetchResponse['0'].percentageFromTotal * 100).toFixed(2)}%`,
+            title: 'Digital Chat SLA',
             hAxis: { title: `Service level time buckets since open (${process.env.VUE_APP_CHATDEPT_OPENHOUR}AM).`},
-            vAxis: {}, //scaleType: 'mirrorLog'
+            vAxis: {}, 
           height:400,
         },
       }
