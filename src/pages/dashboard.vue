@@ -44,14 +44,6 @@ export default {
       clearTimeout(this.refreshTimer)
   },
   computed: {
-    getMinutesSinceOpen: () => {
-        let deptOpen = new Date();
-            deptOpen.setHours( process.env.VUE_APP_CHATDEPT_OPENHOUR );
-            deptOpen.setMinutes( 0 );
-            deptOpen.setSeconds( 0 );
-            deptOpen.setMilliseconds( 0 );
-            return Math.round( ( new Date().getTime() - deptOpen.getTime() ) / 1000 / 60 );
-    },
     kpiShouldBlink() {
         return ( this.fetchResponses.AvailableAgents && this.getAvailableSlots() == 0 ) ? "md-accent" : null
     },
@@ -95,8 +87,8 @@ export default {
       
     async startFetches() {
           await Promise.all([
-            this.fetchLEData(`https://${this.$store.getters.getCSDSDomain('leDataReporting')}/operations/api/account/${process.env.VUE_APP_LE_ACCOUNT}/queuehealth?timeframe=${this.getMinutesSinceOpen}&v=1`,'QueueHealth'),
-            this.fetchLEData(`https://${this.$store.getters.getCSDSDomain('leDataReporting')}/operations/api/account/${process.env.VUE_APP_LE_ACCOUNT}/sla?timeframe=${this.getMinutesSinceOpen}&histogram=${this.chatTimeBuckets.toString()}&v=1`,'SlaHistogram'),
+            this.fetchLEData(`https://${this.$store.getters.getCSDSDomain('leDataReporting')}/operations/api/account/${process.env.VUE_APP_LE_ACCOUNT}/queuehealth?timeframe=${this.getMinutesSinceOpen()}&v=1`,'QueueHealth'),
+            this.fetchLEData(`https://${this.$store.getters.getCSDSDomain('leDataReporting')}/operations/api/account/${process.env.VUE_APP_LE_ACCOUNT}/sla?timeframe=${this.getMinutesSinceOpen()}&histogram=${this.chatTimeBuckets.toString()}&v=1`,'SlaHistogram'),
             this.fetchLEData(`${this.$store.getters.getAgentSessionLink}/availableAgents?&v=1&NC=true`,'AvailableAgents')] 
           ).then( () => {
                 this.lastRefresh = new Date()
@@ -132,6 +124,14 @@ export default {
     },
     getCurrentSLA() {
         return ( this.fetchResponses.loaded && (this.fetchResponses.SlaHistogram.slaDataRange['0'].percentageFromTotal * 100) )
+    },
+    getMinutesSinceOpen() {
+        let deptOpen = new Date();
+            deptOpen.setHours( process.env.VUE_APP_CHATDEPT_OPENHOUR );
+            deptOpen.setMinutes( 0 );
+            deptOpen.setSeconds( 0 );
+            deptOpen.setMilliseconds( 0 );
+            return Math.round( ( new Date().getTime() - deptOpen.getTime() ) / 1000 / 60 );
     },
   }
 

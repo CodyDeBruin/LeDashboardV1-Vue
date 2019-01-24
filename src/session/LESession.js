@@ -1,9 +1,3 @@
-//
-//  le session management. Auto refreshes based off separate config file. 
-//
-//
-//
-
 import config from './config'
 
 class LESession {

@@ -2,7 +2,7 @@
   <nav class="navbar"> 
     <md-toolbar class="md-dense md-primary" md-elevation="7">
 
-          <!-- <router-link to="/"><img src=""/></router-link> -->
+          <router-link to="/"><img src=""/></router-link>
           <h3 class="md-title" >Digital Chat Dashboard</h3>
           <div class="md-toolbar-section-end" v-if="this.$store.getters.isLoggedIn"> 
 
