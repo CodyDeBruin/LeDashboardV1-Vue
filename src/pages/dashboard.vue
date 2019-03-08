@@ -32,7 +32,7 @@ export default {
             fetchResponses: {
                 QueueHealth: null,
                 SlaHistogram: null,
-                AvailableAgents: null,
+                AvailableAgents: {AgentList:null, next:null},
                 loaded:false,
             },
       })
@@ -45,80 +45,118 @@ export default {
   },
   computed: {
     kpiShouldBlink() {
-        return ( this.fetchResponses.AvailableAgents && this.getAvailableSlots() == 0 ) ? "md-accent" : null
+        return ( this.fetchResponses.AvailableAgents.AgentList && this.getAvailableSlots() == 0 ) ? "md-accent" : null
     },
   },
   methods: {
-      async fetchLEData(url, action) {
+    async fetchLEData(url, action) {
+        const reqContent = {
+                headers: {
+                    "Content-Type": "application/json; charset=utf-8",
+                    "Accept": "application/json",
+                    "Authorization": "Bearer " + this.$store.getters.getBearer
+                },
+            }
 
-            const reqContent = {
-                  headers: {
-                      "Content-Type": "application/json; charset=utf-8",
-                      "Accept": "application/json",
-                      "Authorization": "Bearer " + this.$store.getters.getBearer
-                  },
-              }
-              const theReq = new Request(url, reqContent)
-              return new Promise( async (resolve, reject) => { 
-                await fetch(theReq) 
-                  .then(async (res) => {
-                      if(res.ok){
-                          let responseJson = await res.json()     
-                          
-                                if( action == "AvailableAgents") { 
-                                    responseJson = responseJson.availableAgents.agents.agent.map( val => { 
-                                        val.chats = val.chats ? parseInt( val.chats ) : 0;
-                                        val['@maxChats'] = val['@maxChats'] ? parseInt( val['@maxChats'] ) : 0;
-                                        return val  
-                                    })
+            const theReq = new Request(url, reqContent)
+            return fetch(theReq) 
+                .then(async (res) => {
+                    if(res.ok){ 
+                        const resp = await res.json()
+                    if( action ) {
+                        this.fetchResponses[action] = resp
+                    } else return resp
+                    }  else {
+                        return null
+                    }
+                    
+                }) 
+                .catch ((err) => {console.log(err) } )   
+    },
 
-                                    responseJson = responseJson.sort(function(a, b) {
-                                        return a.chats - b.chats;
-                                    })
-                                }
+    async fetchAvailableAgents() {
+        //relational links not described in LE documentation. Subsequent hits to the API return only the changes that have occured since the first request. 
+        const mappedResponse = this.fetchResponses.AvailableAgents
+        const url = mappedResponse.AgentList ? 
+                    `${mappedResponse.next}&v=1&NC=true` : 
+                    `${this.$store.getters.getAgentSessionLink}/availableAgents?&v=1&NC=true`
 
-                          this.fetchResponses[action] = responseJson
-                          resolve(true)
-                      }  else {reject(false)}
-                  }) 
-                  .catch ((err) => {reject(err) } )   
-              })
-      },
-      
+        const avilAgent = await this.fetchLEData(url)
+        const agentsReturned = avilAgent.availableAgents.agents
+
+        this.fetchResponses.AvailableAgents.next = avilAgent.availableAgents.link['@href']
+
+        if( agentsReturned && Array.isArray(agentsReturned.agent) ) {
+                
+            let agentTree = {}
+
+            agentsReturned.agent.map( (val) => {
+            agentTree[val['@id']] = val
+            delete agentTree[val['@id']]['@id']
+            })
+
+            this.fetchResponses.AvailableAgents.AgentList = agentTree
+
+        } else {
+            if(agentsReturned && agentsReturned.agent) {
+                this.fetchResponses.AvailableAgents.AgentList[agentsReturned.agent['@id']] = agentsReturned.agent
+                delete this.fetchResponses.AvailableAgents.AgentList[agentsReturned.agent['@id']]['@id']
+            } 
+        } 
+
+    },
+
     async startFetches() {
           await Promise.all([
-            this.fetchLEData(`https://${this.$store.getters.getCSDSDomain('leDataReporting')}/operations/api/account/${process.env.VUE_APP_LE_ACCOUNT}/queuehealth?timeframe=${this.getMinutesSinceOpen()}&v=1`,'QueueHealth'),
-            this.fetchLEData(`https://${this.$store.getters.getCSDSDomain('leDataReporting')}/operations/api/account/${process.env.VUE_APP_LE_ACCOUNT}/sla?timeframe=${this.getMinutesSinceOpen()}&histogram=${this.chatTimeBuckets.toString()}&v=1`,'SlaHistogram'),
-            this.fetchLEData(`${this.$store.getters.getAgentSessionLink}/availableAgents?&v=1&NC=true`,'AvailableAgents')] 
+            this.fetchLEData(`https://${this.$store.getters.getCSDSDomain('leDataReporting')}/operations/api/account/${process.env.VUE_APP_LE_ACCOUNT}/queuehealth?timeframe=${this.getMinutesSinceOpen()}&v=1`, 'QueueHealth'),
+            this.fetchLEData(`https://${this.$store.getters.getCSDSDomain('leDataReporting')}/operations/api/account/${process.env.VUE_APP_LE_ACCOUNT}/sla?timeframe=${this.getMinutesSinceOpen()}&histogram=${this.chatTimeBuckets.toString()}&v=1`, 'SlaHistogram'),
+            this.fetchAvailableAgents()] 
           ).then( () => {
                 this.lastRefresh = new Date()
                 this.fetchResponses.loaded = true
-          }).catch( (err)=>console.log(err))
-
+          }).catch( (err)=>console.log("Fetches failed: ", err))
 
           //kick them to the login page if a refresh hasn't been sucessfull in the last 10 minutes.
           if( new Date().getMilliseconds > ( this.lastRefresh.getMilliseconds + (10 * 60 * 1000) )) {this.$router.push("/login")} 
 
             this.refreshTimer = setTimeout( () => {
                 this.startFetches()   
-            }, 10 * 1000) 
+            }, 15 * 1000) 
     },
-    grabAgentsByGridType(type) {   
-        const agArray= this.fetchResponses.AvailableAgents
 
+    grabAgentsByGridType(type) {   
+
+
+        if(!this.fetchResponses.loaded) return null
+        let agArray= Object.values(this.fetchResponses.AvailableAgents.AgentList)
+        
         switch( type ) {
             case 'Ready':
-                return agArray.filter( (val) => { return  val['@chatState'] == '2' } ); 
+                agArray = agArray.filter( (val) => { return  val['@chatState'] == '2' } ); 
+                break
             case 'Not-Ready':
-                return agArray.filter( (val) => { return ( val['@chatState'] == '3' || val['@chatState'] == '4' && val['@maxChats'] != 0 ) } ) 
+                agArray = agArray.filter( (val) => { return ( val['@chatState'] == '3' || val['@chatState'] == '4' && val['@maxChats'] != "0" ) } ) 
+                break
             case 'Logged-in': 
-                return agArray.filter( (val) => { return val['@chatState'] != '1'} )  
+                agArray = agArray.filter( (val) => { return val['@chatState'] != '1'} )  
+                break
             default:
-                return agArray.filter( (val) => { return val['@chatState'] == '2'} ); 
-        }    
+                agArray = agArray.filter( (val) => { return val['@chatState'] == '2'} ); 
+                break
+        }   
+
+        return agArray.map( val => { 
+            val.chats = val.chats ? parseInt( val.chats ) : 0;
+            val['@maxChats'] = val['@maxChats'] ? parseInt( val['@maxChats'] ) : 0;
+            return val  
+        }).sort(function(a, b) {
+            return a.chats - b.chats;
+        }) 
+          
     },
+
     getAvailableSlots() {
-        return this.grabAgentsByGridType('Ready').reduce( (acc, current) => {
+        return this.fetchResponses.loaded && this.grabAgentsByGridType('Ready').reduce( (acc, current) => {
             return acc + (current['@maxChats'] - current.chats)
         }, 0)
     },
@@ -134,8 +172,6 @@ export default {
             return Math.round( ( new Date().getTime() - deptOpen.getTime() ) / 1000 / 60 );
     },
   }
-
-
 
 }
 </script>
