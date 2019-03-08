@@ -17,7 +17,6 @@
   </nav>
 </template>
 
-
 <script>
 export default {
   name: 'appnavbar',
@@ -27,12 +26,10 @@ export default {
   components: {
   },
   methods: {
-
-      async logoutHandler(e) {
+       async logoutHandler(e) {
           e.preventDefault()
              await this.$store.dispatch('attemptLogout').then( () => {this.$router.push("/login") })         
       }
-
   }
 }
 </script>
