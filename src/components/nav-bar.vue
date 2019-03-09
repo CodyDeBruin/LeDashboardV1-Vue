@@ -2,7 +2,7 @@
   <nav class="navbar"> 
     <md-toolbar class="md-dense md-primary" md-elevation="7">
 
-          <router-link to="/"><img src=""/></router-link>
+          <router-link to="/"><img :src="this.getLogo()"/></router-link> 
           <h3 class="md-title" >Digital Chat Dashboard</h3>
           <div class="md-toolbar-section-end" v-if="this.$store.getters.isLoggedIn"> 
 
@@ -29,6 +29,9 @@ export default {
        async logoutHandler(e) {
           e.preventDefault()
              await this.$store.dispatch('attemptLogout').then( () => {this.$router.push("/login") })         
+      },
+      getLogo() {
+        return process.env && process.env.VUE_APP_NAVBARLOGOURL
       }
   }
 }

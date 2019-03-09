@@ -1,6 +1,5 @@
 <template>
     <md-toolbar :class="'md-layout md-gutter'" v-if="fetchResponse">
-           
             <CaptionedItem class="md-layout-item" :val="fetchResponse.metricsTotals.connectedEng.toFixed(0)" caption="Connected Chats"/>
             <CaptionedItem class="md-layout-item" :val="fetchResponse.metricsTotals.abandonedEng.toFixed(0)" caption="Abandoned Chats"/>
             <CaptionedItem class="md-layout-item" :val="SlotsAvail.toFixed(0)" caption="Current Available Slots"/>

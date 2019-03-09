@@ -23,4 +23,3 @@ export default {
     margin: 2% 0;
   }
 </style>
-// va.data.liveperson.net

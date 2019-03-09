@@ -88,14 +88,25 @@ export default {
 
         if( agentsReturned && Array.isArray(agentsReturned.agent) ) {
                 
-            let agentTree = {}
+            if( !this.fetchResponses.AvailableAgents.AgentList ) {
+                
+                
+                let agentTree = {}
 
-            agentsReturned.agent.map( (val) => {
-            agentTree[val['@id']] = val
-            delete agentTree[val['@id']]['@id']
-            })
+                agentsReturned.agent.forEach( (val) => {
+                    agentTree[val['@id']] = val
+                    delete agentTree[val['@id']]['@id']
+                })
 
-            this.fetchResponses.AvailableAgents.AgentList = agentTree
+                this.fetchResponses.AvailableAgents.AgentList = agentTree
+            } else {
+                agentsReturned.agent.forEach( (val) => {
+                    for( let key in val ) {
+                        this.fetchResponses.AvailableAgents.AgentList[val['@id']][key] = val[key]
+                    }
+                })
+            }
+
 
         } else {
             if(agentsReturned && agentsReturned.agent) {
@@ -175,6 +186,8 @@ export default {
 
 }
 </script>
+
+
 <style scoped>
     .md-progress-spinner {
         padding: 10% 50%;
