@@ -83,38 +83,34 @@ export default {
 
         const avilAgent = await this.fetchLEData(url)
         const agentsReturned = avilAgent.availableAgents.agents
-
+        //console.log("Returned Vals: ", agentsReturned)
         this.fetchResponses.AvailableAgents.next = avilAgent.availableAgents.link['@href']
 
         if( agentsReturned && Array.isArray(agentsReturned.agent) ) {
                 
             if( !this.fetchResponses.AvailableAgents.AgentList ) {
                 
-                
                 let agentTree = {}
 
                 agentsReturned.agent.forEach( (val) => {
                     agentTree[val['@id']] = val
-                    delete agentTree[val['@id']]['@id']
+                 //   delete agentTree[val['@id']]['@id']
                 })
 
                 this.fetchResponses.AvailableAgents.AgentList = agentTree
             } else {
                 agentsReturned.agent.forEach( (val) => {
-                    for( let key in val ) {
-                        this.fetchResponses.AvailableAgents.AgentList[val['@id']][key] = val[key]
-                    }
+                    this.fetchResponses.AvailableAgents.AgentList[val['@id']] = Object.assign(this.fetchResponses.AvailableAgents.AgentList[val['@id']], val)
                 })
             }
 
-
         } else {
             if(agentsReturned && agentsReturned.agent) {
-                this.fetchResponses.AvailableAgents.AgentList[agentsReturned.agent['@id']] = agentsReturned.agent
-                delete this.fetchResponses.AvailableAgents.AgentList[agentsReturned.agent['@id']]['@id']
+                this.fetchResponses.AvailableAgents.AgentList[agentsReturned.agent['@id']] = Object.assign(this.fetchResponses.AvailableAgents.AgentList[agentsReturned.agent['@id']], agentsReturned.agent)
+             //   delete this.fetchResponses.AvailableAgents.AgentList[agentsReturned.agent['@id']]['@id']
             } 
         } 
-
+        //console.log("Updated AgentList: ",this.fetchResponses.AvailableAgents.AgentList )
     },
 
     async startFetches() {
@@ -138,7 +134,7 @@ export default {
     grabAgentsByGridType(type) {   
 
 
-        if(!this.fetchResponses.loaded) return null
+        if(!this.fetchResponses.loaded) return 
         let agArray= Object.values(this.fetchResponses.AvailableAgents.AgentList)
         
         switch( type ) {
